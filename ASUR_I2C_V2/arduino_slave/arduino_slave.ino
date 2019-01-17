@@ -7,10 +7,10 @@ unsigned int pwm_motor_vals[8];
 
 
 void setup() {
-  Serial.begin(30720); //Start Serial output and commmunication at baud of 30720
+  Serial.begin(9600); //Start Serial output and commmunication at baud of 30720
   Wire.begin(SLAVE); //begin wired communication
 
-  Wire.onReceive(receiveDataStream); //Define a cqallback function
+  Wire.onReceive(receiveDataStream); //Define a callback function
 }
 
 void loop() {
@@ -21,16 +21,30 @@ void receiveDataStream(int byteCount) {
   char str[32]; //cstring for all hex characters
 
 
+  
+ 
   //Start populating the new array of hex values
-  while (Wire.available()) {
-    int i = 0;
-    str[i] = Wire.read();
-    i++;
+  int inputLength = 0;
+
+  while (inputLength<32) {
+    if(Wire.available()){
+      str[inputLength] = Wire.read();
+      if(str[inputLength]==NULL){
+        break;
+      }
+      inputLength++;
+    }
   }
+  if(inputLength!=31){
+    return;
+  }
+  //
+
+  
 
   //begin delimiter use, declare the token char and the delimiter used
   char* token;
-  const char s[2] = "-";
+  const char s[2] = "~";
   token = strtok(str, s);
   int j = 0;
   while (token != NULL) {
@@ -47,4 +61,12 @@ void receiveDataStream(int byteCount) {
 int Hex_to_UInt(char str[])
 {
   return (int) strtol(str, 0, 16);
+}
+
+void Write_Motor_Vals(){
+  for(int k=0;k<8;k++){
+    Serial.print(pwm_motor_vals);
+    Serial.print(" ");
+  }
+  Serial.println();
 }
